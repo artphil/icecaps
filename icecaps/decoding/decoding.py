@@ -248,19 +248,20 @@ class InteractiveInputHook(tf.train.SessionRunHook):
                     self._get_feed_dict())
         self._session = session
 
+def set_hook(hook, iterator, enqueueOp, placeholders):
+	hook.set_iterators_to_init(iterator)
+	hook.set_iterators_enqueue(enqueueOp)
+	hook.set_input_placeholder(placeholders)
 
 def interactive_input_fn(hook, queue, placeholders, field_map):
     enqueueOp = queue.enqueue(placeholders)
     inputFeatures = queue.dequeue()
     dataset = tf.data.Dataset.from_tensors(inputFeatures)
     iterator = dataset.make_initializable_iterator()
-    hook.set_iterators_to_init(iterator)
-    hook.set_iterators_enqueue(enqueueOp)
-    hook.set_input_placeholder(placeholders)
+    set_hook(hook, iterator, enqueueOp, placeholders)
     next_elem = iterator.get_next()
     features = {field: next_elem[field_map[field]] for field in field_map}
     return features
-
 
 def interactive_input_fn_simple(hook, max_input_len):
     msg_tokenized = tf.placeholder(tf.int64, shape=[1, max_input_len])
