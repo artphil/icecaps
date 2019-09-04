@@ -139,11 +139,6 @@ class BeamSearchDecoder(beam_search_decoder.BeamSearchDecoder):
         if self._end_token.get_shape().ndims != 0:
             raise ValueError("end_token must be a scalar")
 
-        if self._use_go_tokens:
-            self._batch_size = array_ops.size(start_tokens)
-        else:
-            self._batch_size = array_ops.size(start_tokens) // beam_width
-
         self._beam_width = beam_width
         self._length_penalty_weight = length_penalty_weight
         self._coverage_penalty_weight = coverage_penalty_weight
@@ -151,9 +146,11 @@ class BeamSearchDecoder(beam_search_decoder.BeamSearchDecoder):
             self._maybe_split_batch_beams, initial_state, self._cell.state_size)
 
         if self._use_go_tokens:
+			self._batch_size = array_ops.size(start_tokens)
             self._start_tokens = array_ops.tile(
                 array_ops.expand_dims(self._start_tokens, 1), [1, self._beam_width])
         else:
+			self._batch_size = array_ops.size(start_tokens) // beam_width
             self._start_tokens = start_tokens
 
         self._start_inputs = self._embedding_fn(self._start_tokens)
