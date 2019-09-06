@@ -37,23 +37,39 @@ class AbstractRecurrentEstimator(AbstractIcecapsEstimator):
         else:
             self.vocab = Vocabulary(fname=self.hparams.vocab_file, skip_tokens=self.hparams.skip_tokens, skip_tokens_start=self.hparams.skip_tokens_start)
 
-    def build_cell(self, name=None):
+    def build_cell_linear(self, name=None):
         if self.hparams.cell_type == 'linear':
-            cell = BasicRNNCell(self.hparams.hidden_units,
+            return = BasicRNNCell(self.hparams.hidden_units,
                                 activation=tf.identity, name=name)
-        elif self.hparams.cell_type == 'tanh':
-            cell = BasicRNNCell(self.hparams.hidden_units,
+    
+    def build_cell_tanh(self, name=None):
+        if self.hparams.cell_type == 'tanh':
+            return = BasicRNNCell(self.hparams.hidden_units,
                                 activation=tf.tanh, name=name)
-        elif self.hparams.cell_type == 'relu':
-            cell = BasicRNNCell(self.hparams.hidden_units,
+    
+    def build_cell_relu(self, name=None):
+        if self.hparams.cell_type == 'relu':
+            return = BasicRNNCell(self.hparams.hidden_units,
                                 activation=tf.nn.relu, name=name)
-        elif self.hparams.cell_type == 'gru':
-            cell = GRUCell(self.hparams.hidden_units, name=name)
-        elif self.hparams.cell_type == 'lstm':
-            cell = LSTMCell(self.hparams.hidden_units, name=name)
+    
+    def build_cell_gru(self, name=None):
+        if self.hparams.cell_type == 'gru':
+            return = GRUCell(self.hparams.hidden_units, name=name)
+    
+    def build_cell_lstm(self, name=None):
+        if self.hparams.cell_type == 'lstm':
+            return = LSTMCell(self.hparams.hidden_units, name=name)
+        
+    def build_cell(self, name=None):
+        cell_builders={'lineal':build_cell_linear,
+                        'tanh':build_cell_tanh,
+                        'relu':build_cell_relu,
+                        'gru':build_cell_gru,
+                        'lstm':build_cell_lstm}
+        if self.hparams.cell_type in cell_builders:
+            return cell_builders[self.hparams.cell_type](name)
         else:
             raise ValueError('Provided cell type not supported.')
-        return cell
 
     def build_deep_cell(self, cell_list=None, name=None, return_raw_list=False):
         if name is None:
